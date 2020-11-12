@@ -1,3 +1,5 @@
+# Github repo: https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack
+
 # Default values for kube-prometheus-stack.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
@@ -8,7 +10,7 @@ nameOverride: ""
 
 ## Override the deployment namespace
 ##
-namespaceOverride: ""
+namespaceOverride: "monitoring"
 
 ## Provide a k8s version to auto dashboard import script example: kubeTargetVersionOverride: 1.16.6
 ##
@@ -194,7 +196,7 @@ alertmanager:
   #       {{ end }}
 
   ingress:
-    enabled: false
+    enabled: true
 
     # For Kubernetes >= 1.18 you should specify the ingress-controller via the field ingressClassName
     # See https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/#specifying-the-class-of-an-ingress
@@ -206,21 +208,21 @@ alertmanager:
 
     ## Hosts must be provided if Ingress is enabled.
     ##
-    hosts: []
-      # - alertmanager.domain.com
+    hosts:
+      - alertmanager.zephyr-kubernetes.com
 
     ## Paths to use for ingress rules - one path should match the alertmanagerSpec.routePrefix
     ##
-    paths: []
-    # - /
+    paths:
+    - /
 
     ## TLS configuration for Alertmanager Ingress
     ## Secret must be manually created in the namespace
     ##
-    tls: []
-    # - secretName: alertmanager-general-tls
-    #   hosts:
-    #   - alertmanager.example.com
+    tls:
+    - secretName: alertmanager-general-tls
+      hosts:
+      - alertmanager.zephyr-kubernetes.com
 
   ## Configuration for Alertmanager secret
   ##
@@ -410,13 +412,13 @@ alertmanager:
     ## ref: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/user-guides/storage.md
     ##
     storage: {}
-    # volumeClaimTemplate:
-    #   spec:
-    #     storageClassName: gluster
-    #     accessModes: ["ReadWriteOnce"]
-    #     resources:
-    #       requests:
-    #         storage: 50Gi
+    volumeClaimTemplate:
+      spec:
+        storageClassName: prometheus-rook-ceph-block
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 50Gi
     #   selector: {}
 
 
@@ -520,7 +522,7 @@ alertmanager:
 ##
 grafana:
   enabled: true
-  namespaceOverride: ""
+  namespaceOverride: "monitoring"
 
   ## Deploy default dashboards.
   ##
@@ -531,7 +533,7 @@ grafana:
   ingress:
     ## If true, Grafana Ingress will be created
     ##
-    enabled: false
+    enabled: true
 
     ## Annotations for Grafana Ingress
     ##
@@ -546,9 +548,9 @@ grafana:
     ## Hostnames.
     ## Must be provided if Ingress is enable.
     ##
-    # hosts:
-    #   - grafana.domain.com
-    hosts: []
+    hosts:
+      - grafana.zephyr-kubernetes.com
+    # hosts: []
 
     ## Path for grafana ingress
     path: /
@@ -556,10 +558,10 @@ grafana:
     ## TLS configuration for grafana Ingress
     ## Secret must be manually created in the namespace
     ##
-    tls: []
-    # - secretName: grafana-general-tls
-    #   hosts:
-    #   - grafana.example.com
+    tls:
+    - secretName: grafana-general-tls
+      hosts:
+      - grafana.zephyr-kubernetes.com
 
   sidecar:
     dashboards:
@@ -700,9 +702,9 @@ kubelet:
     ## Enable scraping /metrics/resource from kubelet's service
     ## This is disabled by default because container metrics are already exposed by cAdvisor
     ##
-    resource: false
+    resource: true
     # From kubernetes 1.18, /metrics/resource/v1alpha1 renamed to /metrics/resource
-    resourcePath: "/metrics/resource/v1alpha1"
+    resourcePath: "/metrics/resource"
     ## Metric relabellings to apply to samples before ingestion
     ##
     cAdvisorMetricRelabelings: []
@@ -1107,7 +1109,7 @@ kubeStateMetrics:
 ## Configuration for kube-state-metrics subchart
 ##
 kube-state-metrics:
-  namespaceOverride: ""
+  namespaceOverride: "monitoring"
   rbac:
     create: true
   podSecurityPolicy:
@@ -1153,7 +1155,7 @@ nodeExporter:
 ## Configuration for prometheus-node-exporter subchart
 ##
 prometheus-node-exporter:
-  namespaceOverride: ""
+  namespaceOverride: "monitoring"
   podLabels:
     ## Add the 'node-exporter' label to be used by serviceMonitor to match standard common usage in rules and grafana dashboards
     ##
@@ -1490,24 +1492,24 @@ prometheus:
     servicePort: 10901
     ## Hosts must be provided if Ingress is enabled.
     ##
-    hosts: []
-      # - thanos-gateway.domain.com
+    hosts:
+      - thanos-gateway.zephyr-kubernetes.com
 
     ## Paths to use for ingress rules
     ##
-    paths: []
-    # - /
+    paths:
+    - /
 
     ## TLS configuration for Alertmanager Ingress
     ## Secret must be manually created in the namespace
     ##
-    tls: []
-    # - secretName: thanos-gateway-tls
-    #   hosts:
-    #   - thanos-gateway.domain.com
+    tls:
+    - secretName: thanos-gateway-tls
+      hosts:
+      - thanos-gateway.zephyr-kubernetes.com
 
   ingress:
-    enabled: false
+    enabled: true
 
     # For Kubernetes >= 1.18 you should specify the ingress-controller via the field ingressClassName
     # See https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/#specifying-the-class-of-an-ingress
@@ -1519,22 +1521,22 @@ prometheus:
     ## Hostnames.
     ## Must be provided if Ingress is enabled.
     ##
-    # hosts:
-    #   - prometheus.domain.com
-    hosts: []
+    hosts:
+      - prometheus.zephyr-kubernetes.com
+    # hosts: []
 
     ## Paths to use for ingress rules - one path should match the prometheusSpec.routePrefix
     ##
-    paths: []
-    # - /
+    paths:
+    - /
 
     ## TLS configuration for Prometheus Ingress
     ## Secret must be manually created in the namespace
     ##
-    tls: []
-      # - secretName: prometheus-general-tls
-      #   hosts:
-      #     - prometheus.example.com
+    tls:
+      - secretName: prometheus-general-tls
+        hosts:
+          - prometheus.zephyr-kubernetes.com
 
   ## Configuration for creating an Ingress that will map to each Prometheus replica service
   ## prometheus.servicePerReplica must be enabled
@@ -1899,15 +1901,15 @@ prometheus:
     ## Prometheus StorageSpec for persistent data
     ## ref: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/user-guides/storage.md
     ##
-    storageSpec: {}
-    #  volumeClaimTemplate:
-    #    spec:
-    #      storageClassName: gluster
-    #      accessModes: ["ReadWriteOnce"]
-    #      resources:
-    #        requests:
-    #          storage: 50Gi
-    #    selector: {}
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: prometheus-rook-ceph-block
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 50Gi
+        # selector: {}
 
     # Additional volumes on the output StatefulSet definition.
     volumes: []
